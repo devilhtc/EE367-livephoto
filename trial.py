@@ -27,11 +27,13 @@ def try_read_in_file(filename,print_image=False,read_color=True):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-def try_use_cam(max_sec=10):
+def try_use_cam(max_sec=10,read_color=True):
     cam=cv2.VideoCapture(0)
     start_time = time.time()
     while (time.time()-start_time)<max_sec:
         tf,frame=cam.read()
+        if not read_color:
+            frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
         cv2.imshow('single frame',frame)
         cv2.waitKey(1)
     cam.release()
