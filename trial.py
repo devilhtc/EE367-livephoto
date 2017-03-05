@@ -11,8 +11,6 @@ import numpy as np
 import time
 
 
-
-
 def try_read_in_file(filename,print_image=False,read_color=True):
     if read_color:
         img=cv2.imread(filename)
@@ -50,6 +48,6 @@ def main():
     # try_read_in_file(filename,False,True)
 
     try_use_cam()
-    
+
 if __name__=='__main__':
     main()
