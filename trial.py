@@ -35,6 +35,7 @@ def try_use_cam(max_sec=10,read_color=True):
     cv2.destroyAllWindows()
 
 def main():
+    print(sys.path)
     print("My opencv version is")
     print(cv2.__version__)
 
@@ -42,7 +43,7 @@ def main():
 
     # try read in lena.jpg, try printing it
     filename='lena.jpg'
-    # try_read_in_file(filename,False,True)
+    try_read_in_file(filename,False,True)
 
     try_use_cam()
 
