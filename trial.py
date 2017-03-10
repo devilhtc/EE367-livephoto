@@ -36,20 +36,7 @@ def try_use_cam(max_sec=10,read_color=True):
     cam.release()
     cv2.destroyAllWindows()
 
-def try_read_in_video(vidname):
-    vid=cv2.VideoCapture(vidname)
-    vid2=vid
-    frames=[]
-    while(True):
-        ret, frame = vid.read()
-        print(type(frame))
-        print(np.shape(frame))
 
-        if frame is None:
-            break
-        frames.append(frame)
-    vid2.release()
-    return frames
 
 def calc_flow(prevf,nextf):
     prevf=cv2.cvtColor(prevf,cv2.COLOR_BGR2GRAY)
