@@ -76,12 +76,12 @@ def flow2rgb(flow):
     flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
     flow_rgb=flow_rgb*255
 
-    return flow_rgb.astype(int)
+    return flow_rgb.astype('u1')
 
 def write_video(source,outname):
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*'MPEG')
 
-    out = cv2.VideoWriter(outname,fourcc, 12.0, (1080,1440))
+    out = cv2.VideoWriter(outname,fourcc, 20.0, (1080,1440))
     for i in range(len(source)):
         frame=source[i]
         frame = cv2.flip(frame,0)
@@ -121,6 +121,8 @@ def try_save_cam():
     cap.release()
     cv2.destroyAllWindows()
 
+
+
 def main():
     #print(sys.path)
     print("My opencv version is")
@@ -132,7 +134,7 @@ def main():
     vidname='resources/IMG_2454.mov'
     #try_read_in_file(filename,False,True)
     #try_use_cam()
-    if False:
+    if True:
         frames=try_read_in_video(vidname)
         print('here')
         l=len(frames)
@@ -146,9 +148,11 @@ def main():
             flow_rgb=flow2rgb(flow0)
             print(np.shape(flow_rgb))
             print(type(flow_rgb))
+            print(flow_rgb)
+            cv2.imshow('flow',flow_rgb)
             flows.append(flow_rgb)
-
-        write_video(flows,'out.mp4')
+        cv2.destroyAllWindows()
+        write_video(flows,'out.avi')
     else:
         try_save_cam()
 
