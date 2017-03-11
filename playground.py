@@ -139,6 +139,7 @@ def try_read_in_video(vidname):
     frames=[]
     while(True):
         ret, frame = vid.read()
+        frame=cv2.flip(frame,0)
         #print(type(frame))
         #print(np.shape(frame))
 
@@ -148,15 +149,101 @@ def try_read_in_video(vidname):
     vid2.release()
     return frames
 
+def trial7():
+    a=np.random.rand(2,4,3)
+    b=[np.random.rand(2,4,3) for i in range(9)]
+    b.append(a)
+    print(img_util.find_fit( b,a))
+
+def trial6(imgL,imgR):
+
+    stereo = cv2.StereoBM_create(16*3,31)
+    disparity = stereo.compute(imgL,imgR)
+    plt.imshow(disparity,'gray')
+    plt.show()
+
+def trial8():
+    path='data/others/'
+    imgR = cv2.imread(path+'Yeuna9x.png',0)
+    imgL = cv2.imread(path+'SuXT483.png',0)
+    stereo=cv2.StereoBM_create(16,15)
+    disparity = stereo.compute(imgL, imgR)
+
+    fig = plt.figure()
+    bx = fig.add_subplot(221)
+    bx.imshow(imgL)
+    bx.set_aspect('auto')
+    cx = fig.add_subplot(222)
+    cx.imshow(imgR)
+    cx.set_aspect('auto')
+    fig = plt.figure()
+    ax = fig.add_subplot(223)
+    ax.imshow(disparity,'gray')
+    ax.set_aspect('auto')
+    plt.show()
+
+
+def calc_flow(prevf,nextf):
+    prevf=cv2.cvtColor(prevf,cv2.COLOR_BGR2GRAY)
+    nextf=cv2.cvtColor(nextf,cv2.COLOR_BGR2GRAY)
+    return cv2.calcOpticalFlowFarneback(prevf, nextf, None,0.5, 3, 15, 3, 5, 1,0)
+
+def regularize(a):
+    maxa=np.amax(a)
+    mina=np.amin(a)
+    a=(a-mina)/(maxa-mina)
+    return a
+
+def flow2rgb(flow):
+    flow_x=flow[:,:,0]
+    flow_y=flow[:,:,1]
+    flow_y[flow_y==0]=1
+    flow_mag, flow_dir=cv2.cartToPolar(flow_x,flow_y)
+    extra=np.ones(np.shape(flow_x))
+    flow_mag=regularize(flow_mag)
+    flow_dir=regularize(flow_dir)
+    flow_hsv=np.stack((flow_dir,extra,flow_mag),axis=2)
+    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
+    flow_rgb=flow_rgb*255
+    return flow_rgb.astype('u1')
+
+
 def main():
     #clustering_ms()
     #trial1()
     #trial2()
     #clustering_sp()
-    id=2
-    vidname='data/original/'+img_util.num2strlen2(id)+'.MOV'
-    vid=try_read_in_video(vidname)
-    saveframes(id,vid)
+    #trial7()
+    #trial8()
+    if True:
+        id=3
+        vidname='data/original/'+img_util.num2strlen2(id)+'.MOV'
+        imgname='data/original/'+img_util.num2strlen2(id)+'.JPG'
+        vid=try_read_in_video(vidname)
+        oimg=cv2.imread(imgname)
+        #saveframes(id,vid)
+        if False:
+            l=len(vid)
+            print(l)
+            offset=3
+            middle=img_util.find_fit(vid,oimg)
+            middle=int(l/2)
+            print(middle)
+            img_L=cv2.cvtColor(vid[middle-offset],cv2.COLOR_RGB2GRAY)
+            img_R=cv2.cvtColor(vid[middle+offset],cv2.COLOR_RGB2GRAY)
+            #img_L=cv2.bilateralFilter(img_L,8,10,3)
+            #img_R=cv2.bilateralFilter(img_R,8,10,3)
+            trial6(img_L,img_R)
+            trial6(img_R,img_L)
+        else:
+            l=len(vid)
+            middle=img_util.find_fit(vid,oimg)
+            prevf=vid[middle]
+            nextf=vid[middle+1]
+            flow=calc_flow(prevf,nextf)
+            flow_rgb=flow2rgb(flow)
+            plt.imshow(flow_rgb)
+            plt.show()
 
 if __name__=="__main__":
     main()

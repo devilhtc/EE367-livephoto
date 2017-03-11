@@ -68,3 +68,24 @@ def num2strlen2(i):
         return '0'+str(i)
     else:
         return str(i)
+
+
+"""
+find out where the picture is in a sequence of frames
+inputs:
+    frames: all frames of a video
+    pic: the high-res picture
+
+outputs:
+
+"""
+def find_fit(frames,pic):
+    #print(pic)
+    oneframe=frames[0]
+    d=np.shape(oneframe)
+    smallpic=cv2.resize(pic,(d[1],d[0]))
+    #print(smallpic)
+    diff=[]
+    for i in range(len(frames)):
+        diff.append(np.sum(np.power(  frames[i]-smallpic,2)  ))
+    return np.argmin(diff)

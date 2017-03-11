@@ -53,16 +53,13 @@ def flow2rgb(flow):
     flow_x=flow[:,:,0]
     flow_y=flow[:,:,1]
     flow_y[flow_y==0]=1
-    flow_mag=np.power(np.power(flow_x,2)+np.power(flow_y,2),0.5)
-    flow_dir=np.arctan(np.divide(flow_x,flow_y))
+    flow_mag, flow_dir=cv2.cartToPolar(flow_x,flow_y)
     extra=np.ones(np.shape(flow_x))
-
     flow_mag=regularize(flow_mag)
     flow_dir=regularize(flow_dir)
     flow_hsv=np.stack((flow_dir,extra,flow_mag),axis=2)
     flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
     flow_rgb=flow_rgb*255
-
     return flow_rgb.astype('u1')
 
 def write_video(source,outname):
@@ -108,6 +105,8 @@ def try_save_cam():
     cap.release()
     cv2.destroyAllWindows()
 
+def trial1():
+    
 
 
 def main():
@@ -121,7 +120,7 @@ def main():
     vidname='resources/IMG_2454.mov'
     #try_read_in_file(filename,False,True)
     #try_use_cam()
-    if True:
+    if False:
         frames=try_read_in_video(vidname)
         print('here')
         l=len(frames)
@@ -140,8 +139,7 @@ def main():
             flows.append(flow_rgb)
         cv2.destroyAllWindows()
         write_video(flows,'out.avi')
-    else:
-        try_save_cam()
+
 
 
 if __name__=='__main__':
