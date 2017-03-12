@@ -12,6 +12,16 @@ from sklearn.cluster import MeanShift, estimate_bandwidth, spectral_clustering
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.feature_extraction import image
 
+def trial10():
+    fx=np.array([[1,1,1,-1/2,-1,-1],[1,1,1,-1,-1/2,-1],[1,1,1,-1,-1,-1/2]])
+    fy=np.ones(np.shape(fx))
+    fx=fx.astype(np.float32)
+    fy=fy.astype(np.float32)
+    fmag,fdir=cv2.cartToPolar(fx,fy)
+    print(fmag,fdir)
+    fmag=regularize(fmag)
+    fdir=regularize(fdir)
+    print(fmag,fdir)
 
 def clustering_sp():
     a=cv2.imread('data/original/01.JPG')
@@ -163,6 +173,12 @@ def trial6(imgL,imgR):
     plt.imshow(disparity,'gray')
     plt.show()
 
+def trial9(a,b=5,c=3):
+    return (a+b)*c
+
+
+
+# stereo
 def trial8():
     path='data/others/'
     imgR = cv2.imread(path+'Yeuna9x.png',0)
@@ -216,7 +232,10 @@ def main():
     #clustering_sp()
     #trial7()
     #trial8()
-    if True:
+    a=4
+    print(trial9(a))
+    print(trial9(a,c=7))
+    if False:
         id=3
         vidname='data/original/'+img_util.num2strlen2(id)+'.MOV'
         imgname='data/original/'+img_util.num2strlen2(id)+'.JPG'
@@ -245,6 +264,8 @@ def main():
             flow_rgb=flow2rgb(flow)
             plt.imshow(flow_rgb)
             plt.show()
+
+    trial10()
 
 if __name__=="__main__":
     main()

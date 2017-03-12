@@ -51,7 +51,7 @@ def segment_image_ms(image,up=0,addcoor=False):
     image_reshaped=flatten_to_rows(image,True)
     if np.shape(image)[2]>=5:
         image_reshaped=upweight_45(image_reshaped,up)
-    bandwidth = estimate_bandwidth(image_reshaped, quantile=0.2, n_samples=4000)
+    bandwidth = estimate_bandwidth(image_reshaped, quantile=0.1, n_samples=4000)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(image_reshaped)
     labels = ms.labels_
@@ -107,9 +107,9 @@ def find_fit(frames,pic):
 calculate optical flow between two frames
 """
 def calc_flow(prevf,nextf):
-    prevf=cv2.cvtColor(prevf,cv2.COLOR_BGR2GRAY)
-    nextf=cv2.cvtColor(nextf,cv2.COLOR_BGR2GRAY)
-    return cv2.calcOpticalFlowFarneback(prevf, nextf, None,0.5, 3, 15, 3, 5, 1,1)
+    prevf=cv2.cvtColor(prevf,cv2.COLOR_RGB2GRAY)
+    nextf=cv2.cvtColor(nextf,cv2.COLOR_RGB2GRAY)
+    return cv2.calcOpticalFlowFarneback(prevf, nextf, None,0.5, 4, 15, 4, 5, 1.1,1)
 
 
 """
@@ -128,13 +128,12 @@ to flow (rgb)
 def flow2rgb(flow):
     flow_x=flow[:,:,0]
     flow_y=flow[:,:,1]
-    flow_y[flow_y==0]=1
     flow_mag, flow_dir=cv2.cartToPolar(flow_x,flow_y)
     extra=np.ones(np.shape(flow_x))
     flow_mag=regularize(flow_mag)
     flow_dir=regularize(flow_dir)
     flow_hsv=np.stack((flow_dir,extra,flow_mag),axis=2)
-    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
+    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2BGR)
     flow_rgb=flow_rgb*255
     return flow_rgb.astype('u1')
 
@@ -151,9 +150,9 @@ def read_in_video(vidname):
 
         if frame is None:
             break
-        if np.shape(frame)[0]==1080:
-            frame=cv2.flip(frame,0)
-            frame=cv2.flip(frame,1)
+        #if np.shape(frame)[0]>1000:
+        #    frame=cv2.flip(frame,0)
+        #    frame=cv2.flip(frame,1)
         frames.append(frame)
     vid2.release()
     return frames
