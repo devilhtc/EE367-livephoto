@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from sklearn.cluster import MeanShift, estimate_bandwidth
+from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
 
 """
 add coordinates to image
@@ -18,11 +18,12 @@ def add_coordinates(image):
 flatten image (x,y,z)
 to (x*y,z) and standardize each row
 """
-def flatten_to_standard_rows(ximage):
+def flatten_to_rows(ximage,s=False):
     d=np.shape(ximage)
     image_reshaped=np.reshape(ximage,(d[0]*d[1],d[2]))
-    #for i in range(d[2]):
-    #    image_reshaped[:,i]=standardize(image_reshaped[:,i])
+    if s:
+        for i in range(d[2]):
+            image_reshaped[:,i]=standardize(image_reshaped[:,i])
     return image_reshaped
 
 """
@@ -31,23 +32,25 @@ standardize each row for clustering
 def standardize(vector):
     return (vector-np.mean(vector))/np.std(vector)
 
-def upweight_coor(image,ratio):
+def upweight_45(image,ratio):
     upweight=1+ratio/10
     image[:,3]=image[:,3]*upweight
     image[:,4]=image[:,4]*upweight
     return image
 """
-segment image (now according to color)
-
+segment image (with/without coordinates)
+with meanshift
 intput: image (x,y,z) np array
 output: n_classes
         label_image (x,y) np array
 """
-def segment_image(image,method='meanshift'):
+def segment_image_ms(image,up=0,addcoor=False):
     d=np.shape(image)
-    #image=add_coordinates(image)
-    image_reshaped=flatten_to_standard_rows(image)
-    #image_reshaped=upweight_coor(image_reshaped,5)
+    if addcoor:
+        image=add_coordinates(image)
+    image_reshaped=flatten_to_rows(image,True)
+    if np.shape(image)[2]>=5:
+        image_reshaped=upweight_45(image_reshaped,up)
     bandwidth = estimate_bandwidth(image_reshaped, quantile=0.2, n_samples=4000)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(image_reshaped)
@@ -56,6 +59,16 @@ def segment_image(image,method='meanshift'):
     labels_unique = np.unique(labels)
     n_clusters= len(labels_unique)
     return n_clusters ,label_image
+
+def segment_image_km(image,n_clusters,addcoor=False):
+    d=np.shape(image)
+    if addcoor:
+        image=add_coordinates(image)
+    image_reshaped=flatten_to_rows(image,True)
+    km=KMeans(n_clusters).fit(image_reshaped)
+    labels=km.labels_
+    label_image=np.reshape(labels,(d[0],d[1]))
+    return label_image
 
 """
 convert integer (0~99)
@@ -89,3 +102,58 @@ def find_fit(frames,pic):
     for i in range(len(frames)):
         diff.append(np.sum(np.power(  frames[i]-smallpic,2)  ))
     return np.argmin(diff)
+
+"""
+calculate optical flow between two frames
+"""
+def calc_flow(prevf,nextf):
+    prevf=cv2.cvtColor(prevf,cv2.COLOR_BGR2GRAY)
+    nextf=cv2.cvtColor(nextf,cv2.COLOR_BGR2GRAY)
+    return cv2.calcOpticalFlowFarneback(prevf, nextf, None,0.5, 3, 15, 3, 5, 1,1)
+
+
+"""
+make a distribution between 0 and 1
+"""
+def regularize(a):
+    maxa=np.amax(a)
+    mina=np.amin(a)
+    a=(a-mina)/(maxa-mina)
+    return a
+
+"""
+convert flow (x,y)
+to flow (rgb)
+"""
+def flow2rgb(flow):
+    flow_x=flow[:,:,0]
+    flow_y=flow[:,:,1]
+    flow_y[flow_y==0]=1
+    flow_mag, flow_dir=cv2.cartToPolar(flow_x,flow_y)
+    extra=np.ones(np.shape(flow_x))
+    flow_mag=regularize(flow_mag)
+    flow_dir=regularize(flow_dir)
+    flow_hsv=np.stack((flow_dir,extra,flow_mag),axis=2)
+    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
+    flow_rgb=flow_rgb*255
+    return flow_rgb.astype('u1')
+
+
+"""
+read in all frames of a video
+"""
+def read_in_video(vidname):
+    vid=cv2.VideoCapture(vidname)
+    vid2=vid
+    frames=[]
+    while(True):
+        ret, frame = vid.read()
+
+        if frame is None:
+            break
+        if np.shape(frame)[0]==1080:
+            frame=cv2.flip(frame,0)
+            frame=cv2.flip(frame,1)
+        frames.append(frame)
+    vid2.release()
+    return frames

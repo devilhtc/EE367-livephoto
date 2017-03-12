@@ -105,8 +105,6 @@ def try_save_cam():
     cap.release()
     cv2.destroyAllWindows()
 
-def trial1():
-    
 
 
 def main():

@@ -8,10 +8,10 @@ import time
 import utils.img_util as img_util
 import matplotlib.pyplot as plt
 from itertools import cycle
-from sklearn.cluster import MeanShift, estimate_bandwidth
+from sklearn.cluster import MeanShift, estimate_bandwidth, spectral_clustering
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.feature_extraction import image
-from sklearn.cluster import spectral_clustering
+
 
 def clustering_sp():
     a=cv2.imread('data/original/01.JPG')
@@ -140,6 +140,7 @@ def try_read_in_video(vidname):
     while(True):
         ret, frame = vid.read()
         frame=cv2.flip(frame,0)
+        frame=cv2.flip(frame,1)
         #print(type(frame))
         #print(np.shape(frame))
 
@@ -239,7 +240,7 @@ def main():
             l=len(vid)
             middle=img_util.find_fit(vid,oimg)
             prevf=vid[middle]
-            nextf=vid[middle+1]
+            nextf=vid[middle-1]
             flow=calc_flow(prevf,nextf)
             flow_rgb=flow2rgb(flow)
             plt.imshow(flow_rgb)
