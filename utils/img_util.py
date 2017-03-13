@@ -111,6 +111,15 @@ def calc_flow(prevf,nextf):
     nextf=cv2.cvtColor(nextf,cv2.COLOR_RGB2GRAY)
     return cv2.calcOpticalFlowFarneback(prevf, nextf, None,0.5, 4, 15, 4, 5, 1.1,1)
 
+"""
+calculate optical flow between two frames
+"""
+def calc_deepflow(prevf,nextf):
+    prevf=cv2.cvtColor(prevf,cv2.COLOR_RGB2GRAY)
+    nextf=cv2.cvtColor(nextf,cv2.COLOR_RGB2GRAY)
+    df=cv2.optflow.createOptFlow_DeepFlow()
+    return df.calc(prevf,nextf,None)
+
 
 """
 make a distribution between 0 and 1
@@ -143,16 +152,17 @@ read in all frames of a video
 """
 def read_in_video(vidname):
     vid=cv2.VideoCapture(vidname)
-    vid2=vid
+
     frames=[]
     while(True):
         ret, frame = vid.read()
 
         if frame is None:
             break
-        #if np.shape(frame)[0]>1000:
-        #    frame=cv2.flip(frame,0)
-        #    frame=cv2.flip(frame,1)
+        if False:
+            if np.shape(frame)[0]>1000:
+                frame=cv2.flip(frame,0)
+                frame=cv2.flip(frame,1)
         frames.append(frame)
-    vid2.release()
+    vid.release()
     return frames

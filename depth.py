@@ -9,7 +9,6 @@ def get_all_dep(img_id,offset=1,outpath='data/results/dep_all/'):
     vid=img_util.read_in_video('data/original/'+img_util.num2strlen2(img_id)+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
-
     framel=vid[fit]
     framer=vid[fit-offset]
     disparity=get_disparity(framel,framer)

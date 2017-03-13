@@ -19,8 +19,8 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/
     # resize - make it smaller so that segmentation runs faster
     newsize=(int(d2[1]/ratio),int(d2[0]/ratio))
     prevf=cv2.resize(vid[fit],newsize)
-    nextf=cv2.resize(vid[fit+2],newsize)
-    flow=img_util.calc_flow(prevf,nextf)
+    nextf=cv2.resize(vid[fit+1],newsize)
+    flow=img_util.calc_deepflow(prevf,nextf)
     flow_rgb=img_util.flow2rgb(flow)
     # resize
     rimg=cv2.resize(oimg,newsize)
@@ -49,7 +49,7 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/
     fig.savefig(outpath+img_util.num2strlen2(img_id)+'.png')
 
 def main():
-    get_all_seg(7,addcoor=True)
+    get_all_seg(5,addcoor=True)
 
 if __name__ == '__main__':
     main()
