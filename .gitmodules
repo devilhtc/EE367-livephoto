@@ -1,3 +1,6 @@
 [submodule "resources"]
 	path = resources
 	url = git@github.com:valkjsaaa/EE367-livephoto-resources.git
+[submodule "report"]
+	path = report
+	url = git@github.com:devilhtc/EE367-report.git
