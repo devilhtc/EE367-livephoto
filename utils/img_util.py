@@ -46,14 +46,14 @@ intput: image (x,y,z) np array
 output: n_classes
         label_image (x,y) np array
 """
-def segment_image_ms(image,up=0,addcoor=False):
+def segment_image_ms(image,up=0,addcoor=False,quantile=0.2):
     d=np.shape(image)
     if addcoor:
         image=add_coordinates(image)
     image_reshaped=flatten_to_rows(image,True)
     if np.shape(image)[2]>=5:
         image_reshaped=upweight_45(image_reshaped,up)
-    bandwidth = estimate_bandwidth(image_reshaped, quantile=0.3, n_samples=4000)
+    bandwidth = estimate_bandwidth(image_reshaped, quantile=quantile, n_samples=5000)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(image_reshaped)
     labels = ms.labels_
@@ -154,11 +154,9 @@ read in all frames of a video
 """
 def read_in_video(vidname):
     vid=cv2.VideoCapture(vidname)
-
     frames=[]
     while(True):
         ret, frame = vid.read()
-
         if frame is None:
             break
         if True:
@@ -169,6 +167,13 @@ def read_in_video(vidname):
     vid.release()
     return frames
 
+
+"""
+get edge of a image
+resize the image by ratio
+use canny
+resize it back and return
+"""
 def get_edge(oimg,ratio=1):
     d=np.shape(oimg)
     oimg=cv2.resize(oimg,(int(d[1]/ratio),int(d[0]/ratio)))
@@ -183,13 +188,15 @@ def get_edge(oimg,ratio=1):
     e=cv2.Canny(oimg,90,180)
     return cv2.resize(e,(d[1],d[0]))
 
-
+"""
+edge-aware depth map expansion
+"""
 def expand(image,edges,iter=20):
-    x=image
-    xnext=np.zeros(np.shape(x))+image
+    x=cv2.medianBlur(image,4)
+    xnext=np.zeros(np.shape(x))+x
     d=np.shape(x)
     edges=cv2.resize(edges,(d[1],d[0]))
-    for i in range(int(iter/4)):
+    for i in range(int(iter/5)):
         for ii in range(1,d[0]-1):
             for jj in range(1,d[1]-1):
                 if edges[ii,jj]==0:

@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 
 
 
-def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/'):
-    oimg=cv2.imread('data/original/'+img_util.num2strlen2(img_id)+'.JPG')
+def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='results/seg_all/'):
+    oimg=cv2.imread('resources/sample_01/'+img_util.num2strlen2(img_id)+'.JPG')
     oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
-    vid=img_util.read_in_video('data/original/'+img_util.num2strlen2(img_id)+'.MOV')
+    vid=img_util.read_in_video('resources/sample_01/'+img_util.num2strlen2(img_id)+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
 
@@ -25,9 +25,10 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/
     # resize
     rimg=cv2.resize(oimg,newsize)
     img=np.concatenate((rimg ,flow),2)
-    n_clusters0 ,label_image_ms0=img_util.segment_image_ms(rimg,up,addcoor)
+    quantile=0.1
+    n_clusters0 ,label_image_ms0=img_util.segment_image_ms(rimg,up,addcoor,quantile)
 
-    n_clusters ,label_image_ms=img_util.segment_image_ms(img,up,addcoor)
+    n_clusters ,label_image_ms=img_util.segment_image_ms(img,up,addcoor,quantile)
 
     # plotting and saving figure
 
@@ -49,7 +50,7 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/
 
 def main():
 
-    get_all_seg(2,addcoor=True)
+    get_all_seg(4,addcoor=True)
 
 if __name__ == '__main__':
     main()

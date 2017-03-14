@@ -4,19 +4,18 @@ import numpy as np
 import utils.img_util as img_util
 import matplotlib.pyplot as plt
 
-def get_all_dep(img_id,offset=1,span=1,outpath='data/results/dep_all/'):
-    oimg=cv2.imread('data/original/'+img_util.num2strlen2(img_id)+'.JPG')
+def get_all_dep(img_id,offset=1,span=1,outpath='results/dep_all/'):
+    oimg=cv2.imread('resources/sample_01/'+img_util.num2strlen2(img_id)+'.JPG')
     oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
-    vid=img_util.read_in_video('data/original/'+img_util.num2strlen2(img_id)+'.MOV')
+    vid=img_util.read_in_video('resources/sample_01/'+img_util.num2strlen2(img_id)+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
     framel=vid[fit]
     framer=vid[fit-offset]
     disparity=get_disparity(framel,framer)
     edges=img_util.get_edge(oimg)
-    disparity=img_util.expand(disparity,edges)
+    disparity_expanded=img_util.expand(disparity,edges)
 
-    #cv2.imshow('left frame',framel)
 
     prevf=cv2.cvtColor(vid[fit],cv2.COLOR_BGR2RGB)
     nextf=cv2.cvtColor(vid[fit+1],cv2.COLOR_BGR2RGB)
@@ -24,17 +23,21 @@ def get_all_dep(img_id,offset=1,span=1,outpath='data/results/dep_all/'):
     flow_rgb=img_util.flow2rgb(flow)
     # save fig
     fig = plt.figure()
-    subfig1 = fig.add_subplot(311)
+    subfig1 = fig.add_subplot(221)
     subfig1.set_aspect('auto')
     subfig1.imshow(oimg)
 
-    subfig2 = fig.add_subplot(312)
+    subfig2 = fig.add_subplot(222)
     subfig2.set_aspect('auto')
     subfig2.imshow(flow_rgb)
 
-    subfig3 = fig.add_subplot(313)
+    subfig3 = fig.add_subplot(223)
     subfig3.set_aspect('auto')
     subfig3.imshow(disparity,'gray')
+
+    subfig4 = fig.add_subplot(224)
+    subfig4.set_aspect('auto')
+    subfig4.imshow(disparity_expanded,'gray')
 
     fig.savefig(outpath+img_util.num2strlen2(img_id)+'.png')
 
@@ -51,7 +54,7 @@ def get_disparity(framel,framer,numDisparity=16,SADwinSize=15):
     return cv2.resize(disparity,(d[1],d[0]))
 
 def main():
-    j=3
+    j=7
     get_all_dep(j+1)
 
 if __name__ == '__main__':
