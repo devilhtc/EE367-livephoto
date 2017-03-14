@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 
 
 def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/'):
-    oimg=cv2.imread('data/original/'+img_util.num2strlen2(img_id)+'.JPG')
+    oimg=cv2.imread('resources/sample_01/'+img_util.num2strlen2(img_id)+'.JPG')
     oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
-    vid=img_util.read_in_video('data/original/'+img_util.num2strlen2(img_id)+'.MOV')
+    vid=img_util.read_in_video('resources/sample_01/'+img_util.num2strlen2(img_id)+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
 

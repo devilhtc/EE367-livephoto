@@ -24,7 +24,7 @@ def trial10():
     print(fmag,fdir)
 
 def clustering_sp():
-    a=cv2.imread('data/original/01.JPG')
+    a=cv2.imread('resources/sample_01/01.JPG')
     # bilaterial filter,
     # inputs: image, window size, color sigma, spatial sigma
     a=cv2.bilateralFilter(a,8,10,3)
@@ -92,7 +92,7 @@ def trial1():
     print(b[:,0])
 
 def trial2():
-    a=cv2.imread('data/original/01.JPG')
+    a=cv2.imread('resources/sample_01/01.JPG')
     # bilaterial filter,
     # inputs: image, window size, color sigma, spatial sigma
     a=cv2.bilateralFilter(a,8,10,3)
@@ -243,8 +243,8 @@ def main():
     print(trial9(a,c=7))
     if False:
         id=3
-        vidname='data/original/'+img_util.num2strlen2(id)+'.MOV'
-        imgname='data/original/'+img_util.num2strlen2(id)+'.JPG'
+        vidname='resources/sample_01/'+img_util.num2strlen2(id)+'.MOV'
+        imgname='resources/sample_01/'+img_util.num2strlen2(id)+'.JPG'
         vid=try_read_in_video(vidname)
         oimg=cv2.imread(imgname)
         #saveframes(id,vid)

@@ -5,9 +5,9 @@ import utils.img_util as img_util
 import matplotlib.pyplot as plt
 
 def get_all_dep(img_id,offset=1,span=1,outpath='data/results/dep_all/'):
-    oimg=cv2.imread('data/original/'+img_util.num2strlen2(img_id)+'.JPG')
+    oimg=cv2.imread('resources/sample_01/'+img_util.num2strlen2(img_id)+'.JPG')
     oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
-    vid=img_util.read_in_video('data/original/'+img_util.num2strlen2(img_id)+'.MOV')
+    vid=img_util.read_in_video('resources/sample_01/'+img_util.num2strlen2(img_id)+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
     framel=vid[fit]
