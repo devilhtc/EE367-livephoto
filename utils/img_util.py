@@ -189,10 +189,11 @@ def expand(image,edges,iter=20):
     xnext=np.zeros(np.shape(x))+image
     d=np.shape(x)
     edges=cv2.resize(edges,(d[1],d[0]))
-    for ii in range(1,d[0]-1):
-        for jj in range(1,d[1]-1):
-            if edges[ii,jj]==0:
-                edges[ii,jj]=np.amax(edges[ii-1:ii+2,jj-1:jj+2])
+    for i in range(int(iter/4)):
+        for ii in range(1,d[0]-1):
+            for jj in range(1,d[1]-1):
+                if edges[ii,jj]==0:
+                    edges[ii,jj]=np.amax(edges[ii-1:ii+2,jj-1:jj+2])
     for i in range(iter):
         for ii in range(1,d[0]-1):
             for jj in range(1,d[1]-1):
