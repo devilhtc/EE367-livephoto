@@ -224,6 +224,12 @@ def flow2rgb(flow):
     flow_rgb=flow_rgb*255
     return flow_rgb.astype('u1')
 
+def trial11():
+    imgname='data/original/'+img_util.num2strlen2(4)+'.JPG'
+    oimg=cv2.imread(imgname)
+    e=img_util.get_edge(oimg)
+    plt.imshow(e)
+    plt.show()
 
 def main():
     #clustering_ms()
@@ -265,7 +271,7 @@ def main():
             plt.imshow(flow_rgb)
             plt.show()
 
-    trial10()
+    trial11()
 
 if __name__=="__main__":
     main()

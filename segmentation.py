@@ -3,13 +3,13 @@ import cv2
 import numpy as np
 import utils.img_util as img_util
 import matplotlib.pyplot as plt
-from sklearn.cluster import MeanShift, estimate_bandwidth
 
 
 
 
 def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/'):
     oimg=cv2.imread('data/original/'+img_util.num2strlen2(img_id)+'.JPG')
+    oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
     vid=img_util.read_in_video('data/original/'+img_util.num2strlen2(img_id)+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
@@ -18,13 +18,12 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/
 
     # resize - make it smaller so that segmentation runs faster
     newsize=(int(d2[1]/ratio),int(d2[0]/ratio))
-    prevf=cv2.resize(vid[fit],newsize)
-    nextf=cv2.resize(vid[fit+1],newsize)
+    prevf=cv2.cvtColor(cv2.resize(vid[fit],newsize),cv2.COLOR_BGR2RGB)
+    nextf=cv2.cvtColor(cv2.resize(vid[fit+1],newsize),cv2.COLOR_BGR2RGB)
     flow=img_util.calc_deepflow(prevf,nextf)
     flow_rgb=img_util.flow2rgb(flow)
     # resize
     rimg=cv2.resize(oimg,newsize)
-    rimg=cv2.cvtColor(rimg,cv2.COLOR_RGB2LUV)
     img=np.concatenate((rimg ,flow),2)
     n_clusters0 ,label_image_ms0=img_util.segment_image_ms(rimg,up,addcoor)
 
@@ -49,7 +48,8 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='data/results/seg_all/
     fig.savefig(outpath+img_util.num2strlen2(img_id)+'.png')
 
 def main():
-    get_all_seg(5,addcoor=True)
+
+    get_all_seg(2,addcoor=True)
 
 if __name__ == '__main__':
     main()

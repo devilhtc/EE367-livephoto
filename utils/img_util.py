@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import math
 from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
 
 """
@@ -37,6 +38,7 @@ def upweight_45(image,ratio):
     image[:,3]=image[:,3]*upweight
     image[:,4]=image[:,4]*upweight
     return image
+
 """
 segment image (with/without coordinates)
 with meanshift
@@ -51,7 +53,7 @@ def segment_image_ms(image,up=0,addcoor=False):
     image_reshaped=flatten_to_rows(image,True)
     if np.shape(image)[2]>=5:
         image_reshaped=upweight_45(image_reshaped,up)
-    bandwidth = estimate_bandwidth(image_reshaped, quantile=0.1, n_samples=4000)
+    bandwidth = estimate_bandwidth(image_reshaped, quantile=0.3, n_samples=4000)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
     ms.fit(image_reshaped)
     labels = ms.labels_
@@ -140,9 +142,9 @@ def flow2rgb(flow):
     flow_mag, flow_dir=cv2.cartToPolar(flow_x,flow_y)
     extra=np.ones(np.shape(flow_x))
     flow_mag=regularize(flow_mag)
-    flow_dir=regularize(flow_dir)
+    flow_dir=flow_dir/(2*math.pi)
     flow_hsv=np.stack((flow_dir,extra,flow_mag),axis=2)
-    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2BGR)
+    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
     flow_rgb=flow_rgb*255
     return flow_rgb.astype('u1')
 
@@ -159,10 +161,44 @@ def read_in_video(vidname):
 
         if frame is None:
             break
-        if False:
+        if True:
             if np.shape(frame)[0]>1000:
                 frame=cv2.flip(frame,0)
                 frame=cv2.flip(frame,1)
         frames.append(frame)
     vid.release()
     return frames
+
+def get_edge(oimg,ratio=1):
+    d=np.shape(oimg)
+    oimg=cv2.resize(oimg,(int(d[1]/ratio),int(d[0]/ratio)))
+    oimg=cv2.bilateralFilter(oimg,10,20,5)
+    hsv = cv2.cvtColor(oimg, cv2.COLOR_BGR2HSV)
+
+    lower_red = np.array([30,150,50])
+    upper_red = np.array([255,255,180])
+
+    mask = cv2.inRange(hsv, lower_red, upper_red)
+    res = cv2.bitwise_and(oimg,oimg, mask= mask)
+    e=cv2.Canny(oimg,90,180)
+    return cv2.resize(e,(d[1],d[0]))
+
+
+def expand(image,edges,iter=20):
+    x=image
+    xnext=np.zeros(np.shape(x))+image
+    d=np.shape(x)
+    edges=cv2.resize(edges,(d[1],d[0]))
+    for ii in range(1,d[0]-1):
+        for jj in range(1,d[1]-1):
+            if edges[ii,jj]==0:
+                edges[ii,jj]=np.amax(edges[ii-1:ii+2,jj-1:jj+2])
+    for i in range(iter):
+        for ii in range(1,d[0]-1):
+            for jj in range(1,d[1]-1):
+                if np.amax(edges[ii-1:ii+2,jj-1:jj+2])==0:
+                    m=np.amax(x[ii-1:ii+2,jj-1:jj+2])
+                    if x[ii,jj]<m/2:
+                        xnext[ii,jj]=m
+        x=xnext
+    return x
