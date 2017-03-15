@@ -271,7 +271,7 @@ def main():
             plt.imshow(flow_rgb)
             plt.show()
 
-    trial11()
+    trial10()
 
 if __name__=="__main__":
     main()

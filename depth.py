@@ -14,9 +14,14 @@ def get_all_dep(img_id,offset=1,span=1,outpath='results/dep_all/'):
     framer=vid[fit-offset]
     disparity=get_disparity(framel,framer)
     edges=img_util.get_edge(oimg)
+
+    #edges[edges<50]=0
+    #plt.imshow(edges,'gray')
+    #plt.show()
     disparity_expanded=img_util.expand(disparity,edges)
 
-
+    #plt.imshow(disparity,'gray')
+    #plt.show()
     prevf=cv2.cvtColor(vid[fit],cv2.COLOR_BGR2RGB)
     nextf=cv2.cvtColor(vid[fit+1],cv2.COLOR_BGR2RGB)
     flow=img_util.calc_deepflow(prevf,nextf)
@@ -26,18 +31,30 @@ def get_all_dep(img_id,offset=1,span=1,outpath='results/dep_all/'):
     subfig1 = fig.add_subplot(221)
     subfig1.set_aspect('auto')
     subfig1.imshow(oimg)
+    subfig1.set_title('Original image')
+    subfig1.axes.get_xaxis().set_visible(False)
+    subfig1.axes.get_yaxis().set_visible(False)
 
     subfig2 = fig.add_subplot(222)
     subfig2.set_aspect('auto')
     subfig2.imshow(flow_rgb)
+    subfig2.set_title('Optical flow')
+    subfig2.axes.get_xaxis().set_visible(False)
+    subfig2.axes.get_yaxis().set_visible(False)
 
     subfig3 = fig.add_subplot(223)
     subfig3.set_aspect('auto')
     subfig3.imshow(disparity,'gray')
+    subfig3.set_title('Depth map')
+    subfig3.axes.get_xaxis().set_visible(False)
+    subfig3.axes.get_yaxis().set_visible(False)
 
     subfig4 = fig.add_subplot(224)
     subfig4.set_aspect('auto')
     subfig4.imshow(disparity_expanded,'gray')
+    subfig4.set_title('Improved depth map')
+    subfig4.axes.get_xaxis().set_visible(False)
+    subfig4.axes.get_yaxis().set_visible(False)
 
     fig.savefig(outpath+img_util.num2strlen2(img_id)+'.png')
 
@@ -54,8 +71,8 @@ def get_disparity(framel,framer,numDisparity=16,SADwinSize=15):
     return cv2.resize(disparity,(d[1],d[0]))
 
 def main():
-    j=7
-    get_all_dep(j+1)
+    j=11
+    get_all_dep(j)
 
 if __name__ == '__main__':
     main()

@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import math
 from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
-
+import matplotlib.pyplot as plt
 """
 add coordinates to image
 size (x,y,z)->(x,y,z+2)
@@ -143,8 +143,10 @@ def flow2rgb(flow):
     extra=np.ones(np.shape(flow_x))
     flow_mag=regularize(flow_mag)
     flow_dir=flow_dir/(2*math.pi)
+    #print(np.amin(flow_dir))
+    #print(np.amax(flow_dir))
     flow_hsv=np.stack((flow_dir,extra,flow_mag),axis=2)
-    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2RGB)
+    flow_rgb=cv2.cvtColor(flow_hsv.astype(np.float32),cv2.COLOR_HSV2BGR)
     flow_rgb=flow_rgb*255
     return flow_rgb.astype('u1')
 
@@ -152,14 +154,14 @@ def flow2rgb(flow):
 """
 read in all frames of a video
 """
-def read_in_video(vidname):
+def read_in_video(vidname,flip=False):
     vid=cv2.VideoCapture(vidname)
     frames=[]
     while(True):
         ret, frame = vid.read()
         if frame is None:
             break
-        if True:
+        if flip:
             if np.shape(frame)[0]>1000:
                 frame=cv2.flip(frame,0)
                 frame=cv2.flip(frame,1)
@@ -174,7 +176,7 @@ resize the image by ratio
 use canny
 resize it back and return
 """
-def get_edge(oimg,ratio=1):
+def get_edge(oimg,ratio=10):
     d=np.shape(oimg)
     oimg=cv2.resize(oimg,(int(d[1]/ratio),int(d[0]/ratio)))
     oimg=cv2.bilateralFilter(oimg,10,20,5)
@@ -185,28 +187,51 @@ def get_edge(oimg,ratio=1):
 
     mask = cv2.inRange(hsv, lower_red, upper_red)
     res = cv2.bitwise_and(oimg,oimg, mask= mask)
-    e=cv2.Canny(oimg,90,180)
+    e=cv2.Canny(oimg,100,210)
     return cv2.resize(e,(d[1],d[0]))
 
 """
 edge-aware depth map expansion
 """
-def expand(image,edges,iter=20):
-    x=cv2.medianBlur(image,4)
-    xnext=np.zeros(np.shape(x))+x
+def expand(image,edges,iter=20,window_size=3):
+    image=image.astype(np.float32)
+    image[image<=1]=0
+
+    d=np.shape(image)
+    image=cv2.resize(image,(int(d[1]/4),int(d[0]/4)))
+    x=cv2.medianBlur(image,5)
     d=np.shape(x)
+
     edges=cv2.resize(edges,(d[1],d[0]))
-    for i in range(int(iter/5)):
-        for ii in range(1,d[0]-1):
-            for jj in range(1,d[1]-1):
-                if edges[ii,jj]==0:
-                    edges[ii,jj]=np.amax(edges[ii-1:ii+2,jj-1:jj+2])
+    edges[edges<10]=0
+    #plt.imshow(edges,'gray')
+    #plt.show()
+
+    xnext=np.array(x)
     for i in range(iter):
-        for ii in range(1,d[0]-1):
-            for jj in range(1,d[1]-1):
-                if np.amax(edges[ii-1:ii+2,jj-1:jj+2])==0:
-                    m=np.amax(x[ii-1:ii+2,jj-1:jj+2])
-                    if x[ii,jj]<m/2:
-                        xnext[ii,jj]=m
-        x=xnext
+        for ii in range(window_size,d[0]-window_size):
+            for jj in range(window_size,d[1]-window_size):
+                m=np.amax(x[ii-window_size:ii+window_size+1,jj-window_size:jj+window_size+1])
+                if edges[ii,jj]==0 and m!=0 and x[ii,jj]==0:
+                    xnext[ii,jj]=m
+        x=np.array(xnext)
+    x=cv2.medianBlur(x,3)
+    for i in range(int(iter/2)):
+        for ii in range(window_size,d[0]-window_size):
+            for jj in range(window_size,d[1]-window_size):
+                m=np.amax(x[ii-window_size:ii+window_size+1,jj-window_size:jj+window_size+1])
+                if m!=0 and x[ii,jj]==0:
+                    xnext[ii,jj]=m
+        x=np.array(xnext)
+    x=cv2.medianBlur(x,5)
+    for i in range(int(iter/2)):
+        for ii in range(window_size,d[0]-window_size):
+            for jj in range(window_size,d[1]-window_size):
+                m=np.amax(x[ii-window_size:ii+window_size+1,jj-window_size:jj+window_size+1])
+                if m!=0 and x[ii,jj]==0:
+                    xnext[ii,jj]=m
+        x=np.array(xnext)
+    x=cv2.medianBlur(x,5)
+    #plt.imshow(x,'gray')
+    #plt.show()
     return x
