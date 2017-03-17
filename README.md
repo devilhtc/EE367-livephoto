@@ -18,5 +18,6 @@ Run the demo:
 
 ```bash
 export CFLAGS="-I /usr/local/lib/python3.6/site-packages/numpy/core/include $CFLAGS" # A bug in Cython preventing us from adding include path in code.
-python3 ./demo.py
+## Super-resolution Video
+python3 ./superres_video.py 0 # do super-resolution with the 0th frame of the live photo, result is saved in ./data/0.png
 ```
