@@ -43,10 +43,21 @@ if __name__ == "__main__":
             mat = cv2.cvtColor(mat, cv2.COLOR_BGR2RGB)
         io.imsave(location, mat)
 
+    """
+    file name goes here
+    """
+    photo = LivePhoto("resources/for_superres")
 
-    photo = LivePhoto("resources/sample_00/IMG_2454")
     high_res_image = photo.image
+
+    # select the nth frame (input by user)
     frame = photo.video[int(sys.argv[1])]
+
+    # resize it to be the same as the high-res image
     frame_resized = cv2.resize(frame, (4032, 3024))
+
+    # do super resolution by mapping the detail to it
     frame_enhanced = superres_video_frame(high_res_image, frame_resized)
-    imsave("data/" + sys.argv[1] + ".png", frame_enhanced)
+
+    # output file to results folder
+    imsave("results/for_superres_" + sys.argv[1] + ".png", frame_enhanced)

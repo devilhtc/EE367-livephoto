@@ -1,33 +1,41 @@
-
+import sys
 import cv2
 import numpy as np
 import utils.img_util as img_util
 import matplotlib.pyplot as plt
 
-def get_all_dep(img_id,offset=1,span=1,outpath='results/dep_all/'):
-    oimg=cv2.imread('resources/sample_01/'+img_util.num2strlen2(img_id)+'.JPG')
+
+def get_all_dep(filename,offset=1,outpath='results/'):
+    # read in image and video frames
+    oimg=cv2.imread('resources/'+filename+'.JPG')
     oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
-    vid=img_util.read_in_video('resources/sample_01/'+img_util.num2strlen2(img_id)+'.MOV')
+    vid=img_util.read_in_video('resources/'+filename+'.MOV')
+
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
     framel=vid[fit]
     framer=vid[fit-offset]
-    disparity=get_disparity(framel,framer)
+
+    # get disparity between two frames
+    disparity=img_util.get_disparity(framel,framer)
+
+    # get edges
     edges=img_util.get_edge(oimg)
 
-    #edges[edges<50]=0
-    #plt.imshow(edges,'gray')
-    #plt.show()
+    # do edge-aware expansion
     disparity_expanded=img_util.expand(disparity,edges)
 
-    #plt.imshow(disparity,'gray')
-    #plt.show()
+    # get frames
     prevf=cv2.cvtColor(vid[fit],cv2.COLOR_BGR2RGB)
     nextf=cv2.cvtColor(vid[fit+1],cv2.COLOR_BGR2RGB)
+
+    # calculate deepflow
     flow=img_util.calc_deepflow(prevf,nextf)
     flow_rgb=img_util.flow2rgb(flow)
-    # save fig
+
+    # plot and save figure
     fig = plt.figure()
+
     subfig1 = fig.add_subplot(221)
     subfig1.set_aspect('auto')
     subfig1.imshow(oimg)
@@ -56,23 +64,11 @@ def get_all_dep(img_id,offset=1,span=1,outpath='results/dep_all/'):
     subfig4.axes.get_xaxis().set_visible(False)
     subfig4.axes.get_yaxis().set_visible(False)
 
-    fig.savefig(outpath+img_util.num2strlen2(img_id)+'.png')
-
-
-def get_disparity(framel,framer,numDisparity=16,SADwinSize=15):
-    framel=cv2.cvtColor(cv2.cvtColor(framel,cv2.COLOR_BGR2RGB),cv2.COLOR_RGB2GRAY)
-    framer=cv2.cvtColor(cv2.cvtColor(framer,cv2.COLOR_BGR2RGB),cv2.COLOR_RGB2GRAY)
-    d=np.shape(framel)
-    ratio=4
-    framel=cv2.resize(framel,(int(d[1]/ratio),int(d[0]/ratio)))
-    framer=cv2.resize(framer,(int(d[1]/ratio),int(d[0]/ratio)))
-    stereo=cv2.StereoBM_create(numDisparity,SADwinSize)
-    disparity = stereo.compute(framel, framer)
-    return cv2.resize(disparity,(d[1],d[0]))
-
-def main():
-    j=11
-    get_all_dep(j)
+    fig.savefig(outpath+filename+'_result.png')
 
 if __name__ == '__main__':
-    main()
+
+    filename='for_depth_'
+    filename=filename+sys.argv[1]
+    # do depth estimation with disparity mapping
+    get_all_dep(filename)

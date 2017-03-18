@@ -46,7 +46,7 @@ intput: image (x,y,z) np array
 output: n_classes
         label_image (x,y) np array
 """
-def segment_image_ms(image,up=0,addcoor=False,quantile=0.2):
+def segment_image_ms(image,addcoor=False,quantile=0.3,up=0):
     d=np.shape(image)
     if addcoor:
         image=add_coordinates(image)
@@ -192,6 +192,7 @@ def get_edge(oimg,ratio=10):
 
 """
 edge-aware depth map expansion
+apply median filter afterwards
 """
 def expand(image,edges,iter=20,window_size=3):
     image=image.astype(np.float32)
@@ -204,8 +205,6 @@ def expand(image,edges,iter=20,window_size=3):
 
     edges=cv2.resize(edges,(d[1],d[0]))
     edges[edges<10]=0
-    #plt.imshow(edges,'gray')
-    #plt.show()
 
     xnext=np.array(x)
     for i in range(iter):
@@ -232,6 +231,20 @@ def expand(image,edges,iter=20,window_size=3):
                     xnext[ii,jj]=m
         x=np.array(xnext)
     x=cv2.medianBlur(x,5)
-    #plt.imshow(x,'gray')
-    #plt.show()
+
     return x
+
+"""
+get disparity between two frames
+scale down and use the sliding window algorithm
+"""
+def get_disparity(framel,framer,numDisparity=16,SADwinSize=15):
+    framel=cv2.cvtColor(cv2.cvtColor(framel,cv2.COLOR_BGR2RGB),cv2.COLOR_RGB2GRAY)
+    framer=cv2.cvtColor(cv2.cvtColor(framer,cv2.COLOR_BGR2RGB),cv2.COLOR_RGB2GRAY)
+    d=np.shape(framel)
+    ratio=4
+    framel=cv2.resize(framel,(int(d[1]/ratio),int(d[0]/ratio)))
+    framer=cv2.resize(framer,(int(d[1]/ratio),int(d[0]/ratio)))
+    stereo=cv2.StereoBM_create(numDisparity,SADwinSize)
+    disparity = stereo.compute(framel, framer)
+    return cv2.resize(disparity,(d[1],d[0]))

@@ -1,37 +1,44 @@
-
+import sys
 import cv2
 import numpy as np
 import utils.img_util as img_util
 import matplotlib.pyplot as plt
 
 
+def get_all_seg(filename,addcoor=False,quantile=0.1,ratio=2,outpath='results/'):
 
-
-def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='results/seg_all/'):
-    oimg=cv2.imread('resources/sample_01/'+img_util.num2strlen2(img_id)+'.JPG')
+    # read in image
+    oimg=cv2.imread('resources/'+filename+'.JPG')
     oimg=cv2.cvtColor(oimg,cv2.COLOR_BGR2RGB)
 
-    vid=img_util.read_in_video('resources/sample_01/'+img_util.num2strlen2(img_id)+'.MOV')
+    vid=img_util.read_in_video('resources/'+filename+'.MOV')
     # find out which frame correspond to image
     fit=img_util.find_fit(vid,oimg)
-
     d2=np.shape(vid[0])
 
     # resize - make it smaller so that segmentation runs faster
     newsize=(int(d2[1]/ratio),int(d2[0]/ratio))
     prevf=cv2.cvtColor(cv2.resize(vid[fit],newsize),cv2.COLOR_BGR2RGB)
     nextf=cv2.cvtColor(cv2.resize(vid[fit+1],newsize),cv2.COLOR_BGR2RGB)
+
+    # calculate deepflow
     flow=img_util.calc_deepflow(prevf,nextf)
     flow_rgb=img_util.flow2rgb(flow)
-    # resize
-    rimg=cv2.resize(oimg,newsize)
-    img=np.concatenate((rimg ,flow),2)
-    quantile=0.1
-    n_clusters0 ,label_image_ms0=img_util.segment_image_ms(rimg,up,addcoor,quantile)
 
-    n_clusters ,label_image_ms=img_util.segment_image_ms(img,up,addcoor,quantile)
+    # resize original image
+    rimg=cv2.resize(oimg,newsize)
+
+    # concatenate image with optical flow
+    img=np.concatenate((rimg ,flow),2)
+
+    # do clustering on feature spaces
+    n_clusters0 ,label_image_ms0=img_util.segment_image_ms(rimg,addcoor,quantile)
+    n_clusters ,label_image_ms=img_util.segment_image_ms(img,addcoor,quantile)
+
+    # apply a median filter to remove outliers
     label_image_ms=cv2.medianBlur(label_image_ms.astype(np.float32),5)
-    label_image_ms=cv2.medianBlur(label_image_ms.astype(np.float32),5)
+    label_image_ms0=cv2.medianBlur(label_image_ms0.astype(np.float32),5)
+
     # plotting and saving figure
 
     fig = plt.figure()
@@ -64,11 +71,13 @@ def get_all_seg(img_id,addcoor=False,ratio=2,up=0,outpath='results/seg_all/'):
     subfig4.axes.get_xaxis().set_visible(False)
     subfig4.axes.get_yaxis().set_visible(False)
 
-    fig.savefig(outpath+img_util.num2strlen2(img_id)+'.png')
-
-def main():
-
-    get_all_seg(12,addcoor=True)
+    fig.savefig(outpath+filename+'_result.png')
 
 if __name__ == '__main__':
-    main()
+    filename='for_segmentation_'
+    filename=filename+sys.argv[1]
+    # for example 1, quantile=0.1 is recommended
+    # for example 2, quantile=0.14 is recommended
+    quantile=0.1
+    # do segmentation with clustering including coordinates
+    get_all_seg(filename,addcoor=True,quantile=quantile)
